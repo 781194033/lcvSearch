@@ -71,10 +71,12 @@
 
                     </ul>
                 </div>
-                <div class="mySearch">
+                <div class="guess_you_like">
                     <h6>猜你喜欢</h6>
                     <ul class="historyList">
-
+                        {% for item in guess_you_like%}
+                            <li><a href="/search?q={{item}}">{{item}}</a></li>
+                        {%endfor%}
                     </ul>
                 </div>
             </div>
@@ -127,7 +129,7 @@
 
 <div id="foot">Copyright &copy;projectsedu.com 版权所有  E-mail:admin@projectsedu.com</div>
 </body>
-<script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
+<script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.4.0/jquery.js"></script>
 <script type="text/javascript" src="{% static 'js/global.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/pagination.js' %}"></script>
 <script type="text/javascript">
@@ -256,8 +258,16 @@
         }else {
             arrLen = searchArr.length
         }
+
+        
         for (var i=0;i<arrLen;i++){
-            tmpHtml += '<li><a href="/search?q='+searchArr[i]+'">'+searchArr[i]+'</a></li>'
+            var new_str;
+            if (searchArr[i].length > 10) {
+                new_str = searchArr[i].slice(0,10) + "..."
+            } else {
+                new_str = searchArr[i]
+            }
+            tmpHtml += '<li><a href="/search?q='+searchArr[i]+'">'+ new_str + '</a></li>'
         }
         $(".mySearch .historyList").append(tmpHtml);
     }

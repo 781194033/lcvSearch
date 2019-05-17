@@ -10,36 +10,63 @@ redis_cli = redis.StrictRedis()
 
 title = "标题"
 abstract = "摘要"
-def filter_type(data,patent_type):
+def filter_type(data):
 	hits = data['hits']['hits']
-	res = []
+	data_list = []
 	for i in hits:
-		if i['_type'] == patent_type:
-			res.append(i['_source'])
-	return res
+		i["_source"]["_id"] = i["_id"]
+		i["_source"]["_index"] = i["_index"]
+		data_list.append(i["_source"])
+	return data_list
+
+def delete_by_id(req):
+	if req.method == "POST":
+		_id = req.POST.get("id","")
+		_index = req.POST.get("index","")
+		if _id and _index:
+			try:
+				es.delete_by_query(index=_index,body={"query":{"term":{"_id":_id}}})
+				return HttpResponse(json.dumps({"status":0,"msg":"删除成功"}),content_type="application/json")
+			except:
+				return HttpResponse(json.dumps({"status":0,"msg":"删除失败"}),content_type="application/json")
 
 def patent_list(req):
 	if req.method == "POST":
-		search_type = req.POST.get('searchType','TI')
+		search_type = req.POST.get('searchType','ti')
 		search_keyword = req.POST.get('searchKeyword','')
+		page = int(req.POST.get('pageNum',"1"))
+
+		# 用户没有输入关键词
+		if search_keyword == '':
+			result = es.search(
+				index=search_type,
+				body={
+				  "query": {
+				    "match_all": {}
+				  },
+				  "from":(page-1)*10,
+				  "size":10
+				}
+			)
+			total = result['hits']['total']
+			result = filter_type(data=result)
+			return HttpResponse(json.dumps({"status":0,"data":{"list":result,"total":total}}),content_type="application/json")
+		#用户有输入关键词		
 		result = es.search(
-			index="patent",
+			index=search_type,
 			body={
-			  "query": {
-			    "multi_match": {
-			      "query": search_keyword,
-			      "fields": [
-			        title,
-			        abstract
-			      ]
-			    }
-			  },
-			  "from":1,
-			  "size":10
-			}
+				"query": {
+					"match":{
+						title:search_keyword
+					}
+				},
+				"from":(page-1)*10,
+				"size":10
+		    }
 		)
-		result = filter_type(data=result,patent_type=search_type)
-		return HttpResponse(json.dumps({"status":0,"data":{"list":result}}),content_type="application/json")
+		total = result['hits']['total']
+		result = filter_type(data=result)
+		return HttpResponse(json.dumps({"status":0,"data":{"list":result,"total":total}}),content_type="application/json")
 
 
 # 首页
@@ -74,7 +101,9 @@ def search(req):
 		end_time = datetime.now()
 
 		total = result['hits']['total']
-		
+		guess_you_like = []
+		for token in es.indices.analyze(index=s_type,body={"analyzer":"ik_smart","text":key_words})['tokens']:
+			guess_you_like.append(token['token'])
 		res_data = {
 			"all_hits":data_parse(result,s_type),
 			"key_words":key_words,
@@ -85,8 +114,8 @@ def search(req):
 			"ti_count":redis_cli.get('ti_count').decode(),
 			"topn_search":top_n(),
 			"textile_count":redis_cli.get("textile_count").decode(),
-			"costume_count":redis_cli.get("costume_count").decode()
-
+			"costume_count":redis_cli.get("costume_count").decode(),
+			"guess_you_like":list(set(guess_you_like))[:3]
 		}
 		return render(req,"result.html",res_data)
 	return render(req,"result.html")
@@ -118,15 +147,22 @@ def suggest(req):
 
 
 def get_statistic(req):
-	res_data = {
-		"status":0,
-		"data":{
-			"TIcount" : redis_cli.get("ti_count").decode(),
-			"costomCount" : redis_cli.get("costome_count").decode(),
-			"textileCount" : redis_cli.get("textile_count").decode(),
-			"visitedCount" : redis_cli.get("visited_count").decode()
+	user = req.session.get("CURRENT_USER")
+	if user:
+		res_data = {
+			"status":0,
+			"data":{
+				"TIcount" : redis_cli.get("ti_count").decode(),
+				"costomCount" : redis_cli.get("costome_count").decode(),
+				"textileCount" : redis_cli.get("textile_count").decode(),
+				"visitedCount" : redis_cli.get("visited_count").decode()
+			}
 		}
-	}
+	else:
+		res_data = {
+			"status":10,
+			"msg":"用户未登录"
+		}
 	return HttpResponse(json.dumps(res_data),content_type="application/json")
 
 
@@ -205,6 +241,4 @@ def items_search(page,key_words,s_type):
 		  }
 		}
 	)
-
-	
 	return result

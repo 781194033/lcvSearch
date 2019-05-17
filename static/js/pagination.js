@@ -183,7 +183,7 @@ jQuery.fn.pagination = function(maxentries, opts) {
 		}else{
 			drawLinks();
 		}
-		$(this).find(".goto button").live("click",function(evt){
+		$(this).find(".goto button").on("click",function(evt){
 			var setPageNo = $(this).parent().find("input").val();
 			if(setPageNo!=null && setPageNo!=""&&setPageNo>0&&setPageNo<=numPages()){
 				pageSelected(setPageNo-1, evt);

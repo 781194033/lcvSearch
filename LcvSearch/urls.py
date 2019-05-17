@@ -27,5 +27,6 @@ urlpatterns = [
     path('manage/logout/', db.logout),
     path('manage/userlist/', db.user_list),
     path('manage/patentlist/', view.patent_list),
+    path('manage/delete_by_id/', view.delete_by_id),
 
 ]

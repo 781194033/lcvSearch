@@ -2,7 +2,7 @@
 # @Author: Doctor Mu
 # @Date:   2019-05-13 11:34:40
 # @Last Modified by:   Doctor Mu
-# @Last Modified time: 2019-05-13 20:47:23
+# @Last Modified time: 2019-05-16 15:23:55
 import hashlib
 import json
 import redis
@@ -18,12 +18,14 @@ def user_list(req):
 	if req.method == "POST":
 		pageNum = req.POST.get("pageNum","1")
 		pageNum = int(pageNum)
-		users = LcvUser.objects.all().values("username","email","role","id","create_time").order_by("id")[pageNum-1:pageNum+9]
+		users = LcvUser.objects.all().values("username","email","role","id","create_time").order_by("id")
+		current = (pageNum-1)*10
+		cut_users = users[current:current+9]
 		userList = []
-		for i in users:
+		for i in cut_users:
 			i['create_time'] = i['create_time'].strftime("%Y-%m-%d")
 			userList.append(i)
-		return HttpResponse(json.dumps({"status":0,"data":{"list":userList}}),content_type="application/json")
+		return HttpResponse(json.dumps({"status":0,"data":{"list":userList,"total":len(users)}}),content_type="application/json")
 
 
 
@@ -71,7 +73,7 @@ def register(req):
 		if response > 0:
 			return HttpResponse(json.dumps({"status":1,"msg":"email已存在"}),content_type="application/json")
 
-		role = i
+		role = 1
 
 		password = req.POST.get('password','')
 		new_pass = md5_password(password)

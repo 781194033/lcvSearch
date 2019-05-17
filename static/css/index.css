@@ -37,10 +37,11 @@ html{*overflow:auto;}
 .keyWord{color: #FFA500}
 
 .nav-title{
-	background: #eee;
+	background: #fff;
 	height:24px;
 	line-height: 24px;
 	text-align: right;
+	border-bottom: 1px solid #eee 
 }
 
 .login-btn {
