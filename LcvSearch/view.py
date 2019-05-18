@@ -87,7 +87,11 @@ def search(req):
 	key_words = req.GET.get('q','')
 	page = req.GET.get('p','1')
 	s_type = req.GET.get('s_type','ti')
-
+	if s_type == "ti":
+		_abstract = '摘要 (原文)'
+	else:
+		_abstract = abstract
+		
 	try:
 		page = int(page)
 	except:
@@ -102,8 +106,22 @@ def search(req):
 
 		total = result['hits']['total']
 		guess_you_like = []
-		for token in es.indices.analyze(index=s_type,body={"analyzer":"ik_smart","text":key_words})['tokens']:
-			guess_you_like.append(token['token'])
+		more_like_this = es.search(
+			index=s_type,
+			body={
+			  "query": {
+			    "more_like_this": {
+			      "fields": [
+			        _abstract
+			      ],
+			      "like_text":key_words ,
+			      "min_term_freq": 1,
+			      "max_query_terms": 12
+			    }
+			}
+		})['hits']['hits']
+		for source in more_like_this:
+			guess_you_like.append(source['_source'][title])
 		res_data = {
 			"all_hits":data_parse(result,s_type),
 			"key_words":key_words,

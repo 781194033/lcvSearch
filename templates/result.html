@@ -75,7 +75,7 @@
                     <h6>猜你喜欢</h6>
                     <ul class="historyList">
                         {% for item in guess_you_like%}
-                            <li><a href="/search?q={{item}}">{{item}}</a></li>
+                            <li><a href="/search?q={{item}}" class="word_break">{{item}}</a></li>
                         {%endfor%}
                     </ul>
                 </div>
