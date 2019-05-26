@@ -30,6 +30,14 @@ def delete_by_id(req):
 			except:
 				return HttpResponse(json.dumps({"status":0,"msg":"删除失败"}),content_type="application/json")
 
+
+def get_top_ten(req):
+	topn_search = redis_cli.zrevrangebyscore("search_keywords_set","+inf","-inf",start=0,num=10)
+	for i in range(0,len(topn_search)):
+		topn_search[i] = topn_search[i].decode()
+	return HttpResponse(json.dumps({"status":0,"data":{"list":topn_search}}),content_type="application/json")
+
+
 def patent_list(req):
 	if req.method == "POST":
 		search_type = req.POST.get('searchType','ti')
@@ -162,6 +170,7 @@ def suggest(req):
 		res_data.append(match["_source"][title][:75])
 
 	return HttpResponse(json.dumps(res_data),content_type="application/json")
+
 
 
 def get_statistic(req):

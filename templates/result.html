@@ -20,7 +20,7 @@
     </div>
     <div class="nav">
     	<ul class="searchList">
-            <li class="searchItem current" data-type="ti">TI</li>
+            <li class="searchItem current" data-type="ti">机器人</li>
             <li class="searchItem" data-type="costume">服装</li>
             <li class="searchItem" data-type="textile">纺织</li>
         </ul>
@@ -28,11 +28,10 @@
 	<div id="bd" class="ue-clear">
         <div id="main" style="overflow: hidden">
         	<div class="sideBar">
-            	
                 <div class="subfield">专利</div>
                 <ul class="subfieldContext">
                 	<li>
-                    	<span class="name">TI</span>
+                    	<span class="name">机器人</span>
 						<span class="unit">({{ti_count}})</span>
                     </li>
                     <li>
@@ -165,7 +164,6 @@
 			$(this).parent('.subfieldContext').find('.more').addClass('show').find('.text').text('收起');
 			$(this).parent('.subfieldContext').find('li:gt(2)').show();	
 		}
-		
 	});
 	
 	$('.sideBarShowHide a').click(function(e) {

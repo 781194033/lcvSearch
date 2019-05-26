@@ -28,5 +28,5 @@ urlpatterns = [
     path('manage/userlist/', db.user_list),
     path('manage/patentlist/', view.patent_list),
     path('manage/delete_by_id/', view.delete_by_id),
-
+    path('manage/statistic/hotwords', view.get_top_ten),
 ]
